@@ -11,6 +11,8 @@ import static seedu.address.testutil.TypicalEmployees.getTypicalAddressBook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -20,6 +22,9 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.employee.Employee;
 import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeaveId;
+import seedu.address.model.leave.LeavePeriod;
 import seedu.address.testutil.EmployeeBuilder;
 
 public class JsonAddressBookStorageTest {
@@ -67,6 +72,8 @@ public class JsonAddressBookStorageTest {
     public void readAndSaveAddressBook_allInOrder_success() throws Exception {
         Path filePath = testFolder.resolve("TempAddressBook.json");
         AddressBook original = getTypicalAddressBook();
+        original.addLeave(new EmployeeId("1"), new LeavePeriod(
+                LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7)));
         JsonAddressBookStorage jsonAddressBookStorage = new JsonAddressBookStorage(filePath);
 
         // Save in new file and read back
@@ -102,6 +109,25 @@ public class JsonAddressBookStorageTest {
         Employee addedEmployee = readBack.addEmployee(new EmployeeBuilder().build());
 
         assertEquals(new EmployeeId("2"), addedEmployee.getEmployeeId().orElseThrow());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_highestLeaveIdDeleted_preservesNextLeaveId() throws Exception {
+        Path filePath = testFolder.resolve("TempAddressBook.json");
+        AddressBook original = new AddressBook();
+        Employee employee = original.addEmployee(new EmployeeBuilder().build());
+        EmployeeId employeeId = employee.getEmployeeId().orElseThrow();
+        original.addLeave(employeeId, new LeavePeriod(
+                LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7)));
+        original.setLeaves(List.of());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original);
+        AddressBook readBack = new AddressBook(storage.readAddressBook().orElseThrow());
+        Leave addedLeave = readBack.addLeave(employeeId, new LeavePeriod(
+                LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 3)));
+
+        assertEquals(new LeaveId(2), addedLeave.getLeaveId());
     }
 
     @Test
