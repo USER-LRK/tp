@@ -15,6 +15,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
 import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.employee.LeaveEntitlement;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 
@@ -45,6 +46,23 @@ public class JsonAdaptedEmployeeTest {
                 VALID_ADDRESS, VALID_TAGS);
 
         assertThrows(IllegalValueException.class, EmployeeId.MESSAGE_CONSTRAINTS, employee::toModelType);
+    }
+
+    @Test
+    public void toModelType_missingLeaveEntitlement_usesDefault() throws Exception {
+        JsonAdaptedEmployee employee = new JsonAdaptedEmployee(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS);
+
+        assertEquals(new LeaveEntitlement(LeaveEntitlement.DEFAULT_DAYS),
+                employee.toModelType().getLeaveEntitlement());
+    }
+
+    @Test
+    public void toModelType_invalidLeaveEntitlement_throwsIllegalValueException() {
+        JsonAdaptedEmployee employee = new JsonAdaptedEmployee("1", VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, 366, VALID_TAGS);
+
+        assertThrows(IllegalValueException.class, LeaveEntitlement.MESSAGE_CONSTRAINTS, employee::toModelType);
     }
 
     @Test

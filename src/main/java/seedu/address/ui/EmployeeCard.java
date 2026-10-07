@@ -33,11 +33,15 @@ public class EmployeeCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
+    private Label employeeId;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
     @FXML
     private Label email;
+    @FXML
+    private Label leaveEntitlement;
     @FXML
     private FlowPane tags;
 
@@ -49,9 +53,11 @@ public class EmployeeCard extends UiPart<Region> {
         this.employee = employee;
         id.setText(displayedIndex + ". ");
         name.setText(employee.getName().fullName);
+        employeeId.setText("Employee ID: " + employee.getEmployeeId().map(Object::toString).orElse("Unassigned"));
         phone.setText(employee.getPhone().value);
         address.setText(employee.getAddress().value);
         email.setText(employee.getEmail().value);
+        leaveEntitlement.setText("Annual leave: " + employee.getLeaveEntitlement().value + " days");
         employee.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

@@ -14,6 +14,7 @@ import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
 import seedu.address.model.employee.Employee;
 import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.employee.LeaveEntitlement;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -30,6 +31,7 @@ class JsonAdaptedEmployee {
     private final String phone;
     private final String email;
     private final String address;
+    private final Integer leaveEntitlement;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -39,12 +41,14 @@ class JsonAdaptedEmployee {
     public JsonAdaptedEmployee(@JsonProperty("employeeId") String employeeId,
             @JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
+            @JsonProperty("leaveEntitlement") Integer leaveEntitlement,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.employeeId = employeeId;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.leaveEntitlement = leaveEntitlement;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -55,7 +59,15 @@ class JsonAdaptedEmployee {
      */
     public JsonAdaptedEmployee(String name, String phone, String email, String address,
             List<JsonAdaptedTag> tags) {
-        this(null, name, phone, email, address, tags);
+        this(null, name, phone, email, address, null, tags);
+    }
+
+    /**
+     * Constructs a legacy employee with an ID but without leave entitlement.
+     */
+    public JsonAdaptedEmployee(String employeeId, String name, String phone, String email, String address,
+            List<JsonAdaptedTag> tags) {
+        this(employeeId, name, phone, email, address, null, tags);
     }
 
     /**
@@ -67,6 +79,7 @@ class JsonAdaptedEmployee {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
+        leaveEntitlement = source.getLeaveEntitlement().value;
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -115,14 +128,21 @@ class JsonAdaptedEmployee {
         }
         final Address modelAddress = new Address(address);
 
+        int entitlementValue = leaveEntitlement == null ? LeaveEntitlement.DEFAULT_DAYS : leaveEntitlement;
+        if (!LeaveEntitlement.isValidLeaveEntitlement(entitlementValue)) {
+            throw new IllegalValueException(LeaveEntitlement.MESSAGE_CONSTRAINTS);
+        }
+        final LeaveEntitlement modelLeaveEntitlement = new LeaveEntitlement(entitlementValue);
+
         final Set<Tag> modelTags = new HashSet<>(employeeTags);
         if (employeeId == null) {
-            return new Employee(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+            return new Employee(modelName, modelPhone, modelEmail, modelAddress, modelLeaveEntitlement, modelTags);
         }
         if (!EmployeeId.isValidEmployeeId(employeeId)) {
             throw new IllegalValueException(EmployeeId.MESSAGE_CONSTRAINTS);
         }
-        return new Employee(new EmployeeId(employeeId), modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        return new Employee(new EmployeeId(employeeId), modelName, modelPhone, modelEmail, modelAddress,
+                modelLeaveEntitlement, modelTags);
     }
 
 }

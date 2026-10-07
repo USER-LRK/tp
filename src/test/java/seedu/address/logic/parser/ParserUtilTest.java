@@ -18,6 +18,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
 import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.employee.LeaveEntitlement;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -76,6 +77,26 @@ public class ParserUtilTest {
         EmployeeId expected = new EmployeeId("1024");
         assertEquals(expected, ParserUtil.parseEmployeeId("1024"));
         assertEquals(expected, ParserUtil.parseEmployeeId(WHITESPACE + "1024" + WHITESPACE));
+    }
+
+    @Test
+    public void parseLeaveEntitlement_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseLeaveEntitlement(null));
+    }
+
+    @Test
+    public void parseLeaveEntitlement_invalidInput_throwsParseException() {
+        for (String invalid : new String[] {"", "-1", "01", "366", "1.5", "days"}) {
+            assertThrows(ParseException.class, LeaveEntitlement.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseLeaveEntitlement(invalid));
+        }
+    }
+
+    @Test
+    public void parseLeaveEntitlement_validInput_success() throws Exception {
+        assertEquals(new LeaveEntitlement(0), ParserUtil.parseLeaveEntitlement("0"));
+        assertEquals(new LeaveEntitlement(14), ParserUtil.parseLeaveEntitlement(WHITESPACE + "14" + WHITESPACE));
+        assertEquals(new LeaveEntitlement(365), ParserUtil.parseLeaveEntitlement("365"));
     }
 
     @Test

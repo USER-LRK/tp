@@ -7,6 +7,7 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_LEAVE_ENTITLEMENT_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
@@ -52,6 +53,11 @@ public class EditEmployeeDescriptorTest {
         editedAmy = new EditEmployeeDescriptorBuilder(DESC_AMY).withAddress(VALID_ADDRESS_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
+        // different leave entitlement -> returns false
+        editedAmy = new EditEmployeeDescriptorBuilder(DESC_AMY)
+                .withLeaveEntitlement(VALID_LEAVE_ENTITLEMENT_BOB).build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
         // different tags -> returns false
         editedAmy = new EditEmployeeDescriptorBuilder(DESC_AMY).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(DESC_AMY.equals(editedAmy));
@@ -64,7 +70,8 @@ public class EditEmployeeDescriptorTest {
                 + editEmployeeDescriptor.getName().orElse(null) + ", phone="
                 + editEmployeeDescriptor.getPhone().orElse(null) + ", email="
                 + editEmployeeDescriptor.getEmail().orElse(null) + ", address="
-                + editEmployeeDescriptor.getAddress().orElse(null) + ", tags="
+                + editEmployeeDescriptor.getAddress().orElse(null) + ", leaveEntitlement="
+                + editEmployeeDescriptor.getLeaveEntitlement().orElse(null) + ", tags="
                 + editEmployeeDescriptor.getTags().orElse(null) + "}";
         assertEquals(expected, editEmployeeDescriptor.toString());
     }

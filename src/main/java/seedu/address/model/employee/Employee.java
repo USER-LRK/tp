@@ -25,13 +25,23 @@ public class Employee {
 
     // Data fields
     private final Address address;
+    private final LeaveEntitlement leaveEntitlement;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
     public Employee(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(null, name, phone, email, address, tags);
+        this(null, name, phone, email, address,
+                new LeaveEntitlement(LeaveEntitlement.DEFAULT_DAYS), tags);
+    }
+
+    /**
+     * Creates an unassigned employee with the given annual leave entitlement.
+     */
+    public Employee(Name name, Phone phone, Email email, Address address,
+            LeaveEntitlement leaveEntitlement, Set<Tag> tags) {
+        this(null, name, phone, email, address, leaveEntitlement, tags);
     }
 
     /**
@@ -39,12 +49,22 @@ public class Employee {
      * to an address book; the address book assigns the ID when the employee is added.
      */
     public Employee(EmployeeId employeeId, Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
+        this(employeeId, name, phone, email, address,
+                new LeaveEntitlement(LeaveEntitlement.DEFAULT_DAYS), tags);
+    }
+
+    /**
+     * Creates an employee with the given ID and annual leave entitlement.
+     */
+    public Employee(EmployeeId employeeId, Name name, Phone phone, Email email, Address address,
+            LeaveEntitlement leaveEntitlement, Set<Tag> tags) {
+        requireAllNonNull(name, phone, email, address, leaveEntitlement, tags);
         this.employeeId = employeeId;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.leaveEntitlement = leaveEntitlement;
         this.tags.addAll(tags);
     }
 
@@ -57,7 +77,7 @@ public class Employee {
      */
     public Employee withEmployeeId(EmployeeId employeeId) {
         requireAllNonNull(employeeId);
-        return new Employee(employeeId, name, phone, email, address, tags);
+        return new Employee(employeeId, name, phone, email, address, leaveEntitlement, tags);
     }
 
     public Name getName() {
@@ -74,6 +94,10 @@ public class Employee {
 
     public Address getAddress() {
         return address;
+    }
+
+    public LeaveEntitlement getLeaveEntitlement() {
+        return leaveEntitlement;
     }
 
     /**
@@ -119,13 +143,14 @@ public class Employee {
                 && phone.equals(otherEmployee.phone)
                 && email.equals(otherEmployee.email)
                 && address.equals(otherEmployee.address)
+                && leaveEntitlement.equals(otherEmployee.leaveEntitlement)
                 && tags.equals(otherEmployee.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(employeeId, name, phone, email, address, tags);
+        return Objects.hash(employeeId, name, phone, email, address, leaveEntitlement, tags);
     }
 
     @Override
@@ -136,6 +161,7 @@ public class Employee {
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
+                .add("leaveEntitlement", leaveEntitlement)
                 .add("tags", tags)
                 .toString();
     }

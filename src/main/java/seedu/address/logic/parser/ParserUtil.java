@@ -17,6 +17,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
 import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.employee.LeaveEntitlement;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -59,6 +60,22 @@ public class ParserUtil {
             throw new ParseException(EmployeeId.MESSAGE_CONSTRAINTS);
         }
         return new EmployeeId(trimmedEmployeeId);
+    }
+
+    /**
+     * Parses an annual leave entitlement in whole days.
+     */
+    public static LeaveEntitlement parseLeaveEntitlement(String leaveEntitlement) throws ParseException {
+        requireNonNull(leaveEntitlement);
+        String trimmedEntitlement = leaveEntitlement.trim();
+        if (!trimmedEntitlement.matches("0|[1-9][0-9]{0,2}")) {
+            throw new ParseException(LeaveEntitlement.MESSAGE_CONSTRAINTS);
+        }
+        int value = Integer.parseInt(trimmedEntitlement);
+        if (!LeaveEntitlement.isValidLeaveEntitlement(value)) {
+            throw new ParseException(LeaveEntitlement.MESSAGE_CONSTRAINTS);
+        }
+        return new LeaveEntitlement(value);
     }
 
     /**

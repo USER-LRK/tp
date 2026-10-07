@@ -25,6 +25,24 @@ public class EmployeeTest {
     }
 
     @Test
+    public void constructor_nullLeaveEntitlement_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Employee(ALICE.getEmployeeId().orElseThrow(),
+                ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(), null, ALICE.getTags()));
+    }
+
+    @Test
+    public void constructor_withoutLeaveEntitlement_usesDefaultEntitlement() {
+        Employee unassignedEmployee = new Employee(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getAddress(), ALICE.getTags());
+        Employee assignedEmployee = new Employee(ALICE.getEmployeeId().orElseThrow(), ALICE.getName(),
+                ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags());
+
+        LeaveEntitlement expected = new LeaveEntitlement(LeaveEntitlement.DEFAULT_DAYS);
+        assertEquals(expected, unassignedEmployee.getLeaveEntitlement());
+        assertEquals(expected, assignedEmployee.getLeaveEntitlement());
+    }
+
+    @Test
     public void isSameEmployee() {
         // same object -> returns true
         assertTrue(ALICE.isSameEmployee(ALICE));
@@ -89,6 +107,10 @@ public class EmployeeTest {
         editedAlice = new EmployeeBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // different leave entitlement -> returns false
+        editedAlice = new EmployeeBuilder(ALICE).withLeaveEntitlement(21).build();
+        assertFalse(ALICE.equals(editedAlice));
+
         // different tags -> returns false
         editedAlice = new EmployeeBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
@@ -98,7 +120,8 @@ public class EmployeeTest {
     public void toStringMethod() {
         String expected = Employee.class.getCanonicalName() + "{employeeId=" + ALICE.getEmployeeId().orElseThrow()
                 + ", name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress()
+                + ", leaveEntitlement=" + ALICE.getLeaveEntitlement() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
