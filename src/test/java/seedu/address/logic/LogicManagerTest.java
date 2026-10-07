@@ -9,26 +9,35 @@ import static seedu.address.logic.commands.CommandTestUtil.LEAVE_ENTITLEMENT_DES
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalEmployees.ALICE;
 import static seedu.address.testutil.TypicalEmployees.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AddLeaveCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeaveId;
+import seedu.address.model.leave.LeavePeriod;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -69,6 +78,27 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_addLeaveCommand_recordsAndPersistsLeave() throws Exception {
+        Employee employee = model.addEmployee(new EmployeeBuilder(ALICE).withoutEmployeeId().build());
+        EmployeeId employeeId = employee.getEmployeeId().orElseThrow();
+        String command = "leave add id/" + employeeId + " from/05-10-2026 to/07-10-2026";
+        LeavePeriod period = new LeavePeriod(
+                LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7));
+        String expectedMessage = String.format(AddLeaveCommand.MESSAGE_SUCCESS,
+                1, employeeId, period, period.getWorkingDayCount());
+
+        CommandResult result = logic.execute(command);
+
+        assertEquals(expectedMessage, result.getFeedbackToUser());
+        Leave expectedLeave = new Leave(new LeaveId(1), employeeId, period);
+        assertEquals(List.of(expectedLeave), model.getLeaveList());
+        JsonAddressBookStorage savedStorage = new JsonAddressBookStorage(
+                temporaryFolder.resolve("addressBook.json"));
+        AddressBook reloaded = new AddressBook(savedStorage.readAddressBook().orElseThrow());
+        assertEquals(List.of(expectedLeave), reloaded.getLeaveList());
     }
 
     @Test

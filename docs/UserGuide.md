@@ -112,6 +112,22 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st employee to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd employee to be `Betsy Crower` and clears all existing tags.
 
+### Recording employee leave: `leave add`
+
+Records an employee's leave and saves it for future sessions.
+
+Format: `leave add id/EMPLOYEE_ID from/START_DATE to/END_DATE`
+
+* Use the stable employee ID shown on the employee's card, not the employee's position in the list.
+* Dates must use `DD-MM-YYYY` format. Both boundary dates are included.
+* The start and end dates must be in the same calendar year, and the start date cannot be after the end date.
+* Saturdays and Sundays do not consume entitlement. Weekday public holidays currently count as working days.
+* The request is rejected if it overlaps that employee's existing leave or exceeds their remaining annual entitlement for that calendar year.
+* Each successful record receives a leave ID that is never reassigned during normal use.
+
+Example:
+* `leave add id/1 from/05-10-2026 to/07-10-2026` records three working days of leave for employee ID 1.
+
 ### Locating employees by name: `find`
 
 Finds employees whose names contain any of the given keywords.
@@ -198,4 +214,5 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [le/ANNUAL_LEAVE_DAYS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com le/18`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
+**Record leave** | `leave add id/EMPLOYEE_ID from/START_DATE to/END_DATE`<br> e.g., `leave add id/1 from/05-10-2026 to/07-10-2026`
 **Help** | `help`

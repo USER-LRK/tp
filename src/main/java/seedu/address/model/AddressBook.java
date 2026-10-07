@@ -18,6 +18,7 @@ import seedu.address.model.leave.Leave;
 import seedu.address.model.leave.LeaveId;
 import seedu.address.model.leave.LeavePeriod;
 import seedu.address.model.leave.UniqueLeaveList;
+import seedu.address.model.leave.exceptions.InsufficientLeaveException;
 import seedu.address.model.leave.exceptions.LeaveIdExhaustedException;
 import seedu.address.model.leave.exceptions.OverlappingLeaveException;
 
@@ -167,11 +168,15 @@ public class AddressBook implements ReadOnlyAddressBook {
      */
     public Leave addLeave(EmployeeId employeeId, LeavePeriod leavePeriod) {
         requireAllNonNull(employeeId, leavePeriod);
-        if (!hasEmployeeWithId(employeeId)) {
-            throw new EmployeeNotFoundException();
-        }
+        Employee employee = findEmployeeById(employeeId);
         if (leaves.hasOverlappingLeave(employeeId, leavePeriod)) {
             throw new OverlappingLeaveException();
+        }
+        int requestedDays = leavePeriod.getWorkingDayCount();
+        int usedDays = leaves.getWorkingDaysUsed(employeeId, leavePeriod.getYear());
+        int remainingDays = Math.max(0, employee.getLeaveEntitlement().value - usedDays);
+        if (requestedDays > remainingDays) {
+            throw new InsufficientLeaveException(requestedDays, remainingDays);
         }
         if (nextLeaveId > Integer.MAX_VALUE) {
             throw new LeaveIdExhaustedException();
@@ -190,6 +195,13 @@ public class AddressBook implements ReadOnlyAddressBook {
         requireNonNull(employeeId);
         return employees.asUnmodifiableObservableList().stream()
                 .anyMatch(employee -> employee.getEmployeeId().orElseThrow().equals(employeeId));
+    }
+
+    private Employee findEmployeeById(EmployeeId employeeId) {
+        return employees.asUnmodifiableObservableList().stream()
+                .filter(employee -> employee.getEmployeeId().orElseThrow().equals(employeeId))
+                .findFirst()
+                .orElseThrow(EmployeeNotFoundException::new);
     }
 
     //// util methods

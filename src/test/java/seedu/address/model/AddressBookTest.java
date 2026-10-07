@@ -26,6 +26,7 @@ import seedu.address.model.employee.exceptions.EmployeeNotFoundException;
 import seedu.address.model.leave.Leave;
 import seedu.address.model.leave.LeaveId;
 import seedu.address.model.leave.LeavePeriod;
+import seedu.address.model.leave.exceptions.InsufficientLeaveException;
 import seedu.address.model.leave.exceptions.LeaveIdExhaustedException;
 import seedu.address.model.leave.exceptions.OverlappingLeaveException;
 import seedu.address.testutil.EmployeeBuilder;
@@ -257,6 +258,51 @@ public class AddressBookTest {
 
         assertEquals(new LeaveId(1), aliceLeave.getLeaveId());
         assertEquals(new LeaveId(2), bensonLeave.getLeaveId());
+    }
+
+    @Test
+    public void addLeave_requestExceedsEntitlement_throwsInsufficientLeaveException() {
+        Employee employee = new EmployeeBuilder().withLeaveEntitlement(2).build();
+        Employee addedEmployee = addressBook.addEmployee(employee);
+
+        InsufficientLeaveException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                InsufficientLeaveException.class, () ->
+                addressBook.addLeave(addedEmployee.getEmployeeId().orElseThrow(), MONDAY_TO_WEDNESDAY));
+
+        assertEquals(3, exception.getRequestedDays());
+        assertEquals(2, exception.getRemainingDays());
+        assertTrue(addressBook.getLeaveList().isEmpty());
+        assertEquals(1, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void addLeave_cumulativeRequestsExceedEntitlement_throwsInsufficientLeaveException() {
+        Employee employee = new EmployeeBuilder().withLeaveEntitlement(4).build();
+        Employee addedEmployee = addressBook.addEmployee(employee);
+        EmployeeId employeeId = addedEmployee.getEmployeeId().orElseThrow();
+        addressBook.addLeave(employeeId, MONDAY_TO_WEDNESDAY);
+
+        InsufficientLeaveException exception = org.junit.jupiter.api.Assertions.assertThrows(
+                InsufficientLeaveException.class, () ->
+                addressBook.addLeave(employeeId, THURSDAY_TO_FRIDAY));
+
+        assertEquals(2, exception.getRequestedDays());
+        assertEquals(1, exception.getRemainingDays());
+        assertEquals(1, addressBook.getLeaveList().size());
+    }
+
+    @Test
+    public void addLeave_newCalendarYear_usesNewAnnualEntitlement() {
+        Employee employee = new EmployeeBuilder().withLeaveEntitlement(3).build();
+        Employee addedEmployee = addressBook.addEmployee(employee);
+        EmployeeId employeeId = addedEmployee.getEmployeeId().orElseThrow();
+        addressBook.addLeave(employeeId, MONDAY_TO_WEDNESDAY);
+        LeavePeriod followingYear = new LeavePeriod(
+                LocalDate.of(2027, 10, 4), LocalDate.of(2027, 10, 6));
+
+        Leave addedLeave = addressBook.addLeave(employeeId, followingYear);
+
+        assertEquals(new LeaveId(2), addedLeave.getLeaveId());
     }
 
     @Test
