@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.AddLeaveCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -23,7 +24,9 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.NameContainsKeywordsPredicate;
+import seedu.address.model.leave.LeavePeriod;
 import seedu.address.testutil.EditEmployeeDescriptorBuilder;
 import seedu.address.testutil.EmployeeBuilder;
 import seedu.address.testutil.EmployeeUtil;
@@ -37,6 +40,30 @@ public class AddressBookParserTest {
         Employee employee = new EmployeeBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(EmployeeUtil.getAddCommand(employee));
         assertEquals(new AddCommand(employee), command);
+    }
+
+    @Test
+    public void parseCommand_leaveAdd() throws Exception {
+        AddLeaveCommand command = (AddLeaveCommand) parser.parseCommand(
+                "leave add id/1 from/05-10-2026 to/07-10-2026");
+        AddLeaveCommand expectedCommand = new AddLeaveCommand(new EmployeeId("1"), new LeavePeriod(
+                java.time.LocalDate.of(2026, 10, 5), java.time.LocalDate.of(2026, 10, 7)));
+
+        assertEquals(expectedCommand, command);
+    }
+
+    @Test
+    public void parseCommand_leaveWithoutSubcommand_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddLeaveCommand.MESSAGE_USAGE), () ->
+                        parser.parseCommand("leave"));
+    }
+
+    @Test
+    public void parseCommand_unknownLeaveSubcommand_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddLeaveCommand.MESSAGE_USAGE), () ->
+                        parser.parseCommand("leave unknown"));
     }
 
     @Test
