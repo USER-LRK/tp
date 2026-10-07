@@ -11,6 +11,9 @@ import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeavePeriod;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -92,6 +95,17 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedEmployee);
 
         addressBook.setEmployee(target, editedEmployee);
+    }
+
+    @Override
+    public Leave addLeave(EmployeeId employeeId, LeavePeriod leavePeriod) {
+        requireAllNonNull(employeeId, leavePeriod);
+        return addressBook.addLeave(employeeId, leavePeriod);
+    }
+
+    @Override
+    public ObservableList<Leave> getLeaveList() {
+        return addressBook.getLeaveList();
     }
 
     //=========== Filtered Employee List Accessors =============================================================

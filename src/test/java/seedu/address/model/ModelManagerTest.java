@@ -8,12 +8,17 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalEmployees.ALICE;
 import static seedu.address.testutil.TypicalEmployees.BENSON;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.NameContainsKeywordsPredicate;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeaveId;
+import seedu.address.model.leave.LeavePeriod;
 import seedu.address.testutil.AddressBookBuilder;
 
 public class ModelManagerTest {
@@ -71,6 +76,22 @@ public class ModelManagerTest {
     @Test
     public void getFilteredEmployeeList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredEmployeeList().remove(0));
+    }
+
+    @Test
+    public void addLeave_validLeave_addsToCentralLeaveList() {
+        modelManager.addEmployee(ALICE);
+        LeavePeriod period = new LeavePeriod(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7));
+
+        Leave leave = modelManager.addLeave(new EmployeeId("1"), period);
+
+        assertEquals(new LeaveId(1), leave.getLeaveId());
+        assertEquals(List.of(leave), modelManager.getLeaveList());
+    }
+
+    @Test
+    public void getLeaveList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getLeaveList().remove(0));
     }
 
     @Test

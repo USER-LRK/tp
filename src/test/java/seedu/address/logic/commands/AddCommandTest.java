@@ -25,6 +25,8 @@ import seedu.address.model.employee.Employee;
 import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.exceptions.DuplicateEmployeeException;
 import seedu.address.model.employee.exceptions.EmployeeIdExhaustedException;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeavePeriod;
 import seedu.address.testutil.EmployeeBuilder;
 
 public class AddCommandTest {
@@ -154,6 +156,16 @@ public class AddCommandTest {
 
         @Override
         public void setEmployee(Employee target, Employee editedEmployee) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Leave addLeave(EmployeeId employeeId, LeavePeriod leavePeriod) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public ObservableList<Leave> getLeaveList() {
             throw new AssertionError("This method should not be called.");
         }
 

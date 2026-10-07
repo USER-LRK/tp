@@ -10,6 +10,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalEmployees.ALICE;
 import static seedu.address.testutil.TypicalEmployees.getTypicalAddressBook;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,9 +22,20 @@ import seedu.address.model.employee.Employee;
 import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.exceptions.DuplicateEmployeeException;
 import seedu.address.model.employee.exceptions.EmployeeIdExhaustedException;
+import seedu.address.model.employee.exceptions.EmployeeNotFoundException;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeaveId;
+import seedu.address.model.leave.LeavePeriod;
+import seedu.address.model.leave.exceptions.LeaveIdExhaustedException;
+import seedu.address.model.leave.exceptions.OverlappingLeaveException;
 import seedu.address.testutil.EmployeeBuilder;
 
 public class AddressBookTest {
+
+    private static final LeavePeriod MONDAY_TO_WEDNESDAY = new LeavePeriod(
+            LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7));
+    private static final LeavePeriod THURSDAY_TO_FRIDAY = new LeavePeriod(
+            LocalDate.of(2026, 10, 8), LocalDate.of(2026, 10, 9));
 
     private final AddressBook addressBook = new AddressBook();
 
@@ -31,6 +43,8 @@ public class AddressBookTest {
     public void constructor() {
         assertEquals(List.of(), addressBook.getEmployeeList());
         assertEquals(1, addressBook.getNextEmployeeId());
+        assertEquals(List.of(), addressBook.getLeaveList());
+        assertEquals(1, addressBook.getNextLeaveId());
     }
 
     @Test
@@ -189,14 +203,165 @@ public class AddressBookTest {
     }
 
     @Test
+    public void addLeave_nullValue_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> addressBook.addLeave(null, MONDAY_TO_WEDNESDAY));
+        assertThrows(NullPointerException.class, () -> addressBook.addLeave(new EmployeeId("1"), null));
+    }
+
+    @Test
+    public void addLeave_unknownEmployee_throwsEmployeeNotFoundException() {
+        assertThrows(EmployeeNotFoundException.class, () ->
+                addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY));
+        assertEquals(1, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void addLeave_validPeriod_assignsNextId() {
+        addressBook.addEmployee(ALICE);
+
+        Leave addedLeave = addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        assertEquals(new LeaveId(1), addedLeave.getLeaveId());
+        assertEquals(List.of(addedLeave), addressBook.getLeaveList());
+        assertEquals(2, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void addLeave_secondNonOverlappingPeriod_assignsFollowingId() {
+        addressBook.addEmployee(ALICE);
+        addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        Leave secondLeave = addressBook.addLeave(new EmployeeId("1"), THURSDAY_TO_FRIDAY);
+
+        assertEquals(new LeaveId(2), secondLeave.getLeaveId());
+    }
+
+    @Test
+    public void addLeave_overlappingPeriod_throwsOverlappingLeaveException() {
+        addressBook.addEmployee(ALICE);
+        addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+        LeavePeriod overlappingPeriod = new LeavePeriod(
+                LocalDate.of(2026, 10, 7), LocalDate.of(2026, 10, 8));
+
+        assertThrows(OverlappingLeaveException.class, () ->
+                addressBook.addLeave(new EmployeeId("1"), overlappingPeriod));
+        assertEquals(2, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void addLeave_samePeriodForDifferentEmployees_success() {
+        AddressBook populatedAddressBook = getTypicalAddressBook();
+
+        Leave aliceLeave = populatedAddressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+        Leave bensonLeave = populatedAddressBook.addLeave(new EmployeeId("2"), MONDAY_TO_WEDNESDAY);
+
+        assertEquals(new LeaveId(1), aliceLeave.getLeaveId());
+        assertEquals(new LeaveId(2), bensonLeave.getLeaveId());
+    }
+
+    @Test
+    public void addLeave_noAvailableId_throwsLeaveIdExhaustedException() {
+        Leave leaveWithMaximumId = new Leave(new LeaveId(Integer.MAX_VALUE), new EmployeeId("1"),
+                MONDAY_TO_WEDNESDAY);
+        AddressBook addressBookAtLimit = new AddressBook(List.of(ALICE), 2,
+                List.of(leaveWithMaximumId), (long) Integer.MAX_VALUE + 1);
+
+        assertThrows(LeaveIdExhaustedException.class, () ->
+                addressBookAtLimit.addLeave(new EmployeeId("1"), THURSDAY_TO_FRIDAY));
+    }
+
+    @Test
+    public void removeEmployee_employeeHasLeave_removesAssociatedLeaveWithoutReusingId() {
+        addressBook.addEmployee(ALICE);
+        addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        addressBook.removeEmployee(ALICE);
+
+        assertTrue(addressBook.getLeaveList().isEmpty());
+        assertEquals(2, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void setEmployees_employeeRemoved_removesOrphanedLeave() {
+        addressBook.addEmployee(ALICE);
+        addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        addressBook.setEmployees(List.of());
+
+        assertTrue(addressBook.getLeaveList().isEmpty());
+        assertEquals(2, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void setLeaves_unknownEmployee_throwsEmployeeNotFoundException() {
+        Leave leave = new Leave(new LeaveId(1), new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        assertThrows(EmployeeNotFoundException.class, () -> addressBook.setLeaves(List.of(leave)));
+    }
+
+    @Test
+    public void setLeaves_validLeave_replacesListAndAdvancesNextId() {
+        addressBook.addEmployee(ALICE);
+        Leave leave = new Leave(new LeaveId(5), new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        addressBook.setLeaves(List.of(leave));
+
+        assertEquals(List.of(leave), addressBook.getLeaveList());
+        assertEquals(6, addressBook.getNextLeaveId());
+    }
+
+    @Test
+    public void setLeaves_overlappingPeriods_throwsOverlappingLeaveException() {
+        addressBook.addEmployee(ALICE);
+        Leave firstLeave = new Leave(new LeaveId(1), new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+        Leave overlappingLeave = new Leave(new LeaveId(2), new EmployeeId("1"), new LeavePeriod(
+                LocalDate.of(2026, 10, 7), LocalDate.of(2026, 10, 8)));
+
+        assertThrows(OverlappingLeaveException.class, () ->
+                addressBook.setLeaves(List.of(firstLeave, overlappingLeave)));
+        assertTrue(addressBook.getLeaveList().isEmpty());
+    }
+
+    @Test
+    public void constructor_invalidNextLeaveId_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new AddressBook(List.of(), 1, List.of(), 0));
+    }
+
+    @Test
+    public void copyConstructor_preservesLeavesAndNextLeaveId() {
+        addressBook.addEmployee(ALICE);
+        Leave leave = addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        AddressBook copy = new AddressBook(addressBook);
+
+        assertEquals(List.of(leave), copy.getLeaveList());
+        assertEquals(2, copy.getNextLeaveId());
+    }
+
+    @Test
+    public void hasEmployeeWithId() {
+        addressBook.addEmployee(ALICE);
+
+        assertTrue(addressBook.hasEmployeeWithId(new EmployeeId("1")));
+        assertFalse(addressBook.hasEmployeeWithId(new EmployeeId("2")));
+        assertThrows(NullPointerException.class, () -> addressBook.hasEmployeeWithId(null));
+    }
+
+    @Test
     public void getEmployeeList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> addressBook.getEmployeeList().remove(0));
     }
 
     @Test
+    public void getLeaveList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> addressBook.getLeaveList().remove(0));
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = AddressBook.class.getCanonicalName() + "{employees=" + addressBook.getEmployeeList()
-                + ", nextEmployeeId=1}";
+                + ", nextEmployeeId=1, leaves=" + addressBook.getLeaveList() + ", nextLeaveId=1}";
         assertEquals(expected, addressBook.toString());
     }
 
@@ -227,8 +392,18 @@ public class AddressBookTest {
         }
 
         @Override
+        public long getNextLeaveId() {
+            return 1;
+        }
+
+        @Override
         public ObservableList<Employee> getEmployeeList() {
             return employees;
+        }
+
+        @Override
+        public ObservableList<Leave> getLeaveList() {
+            return FXCollections.emptyObservableList();
         }
     }
 

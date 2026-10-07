@@ -5,6 +5,9 @@ import java.util.function.Predicate;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.leave.Leave;
+import seedu.address.model.leave.LeavePeriod;
 
 /**
  * The API of the Model component.
@@ -60,6 +63,14 @@ public interface Model {
      * the address book.
      */
     void setEmployee(Employee target, Employee editedEmployee);
+
+    /**
+     * Records leave for an existing employee and returns the assigned leave record.
+     */
+    Leave addLeave(EmployeeId employeeId, LeavePeriod leavePeriod);
+
+    /** Returns an unmodifiable view of the central leave list. */
+    ObservableList<Leave> getLeaveList();
 
     /** Returns an unmodifiable view of the filtered employee list */
     ObservableList<Employee> getFilteredEmployeeList();

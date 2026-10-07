@@ -107,6 +107,14 @@ public class UniqueLeaveList implements Iterable<Leave> {
         }
     }
 
+    /**
+     * Removes all leave records belonging to {@code employeeId}.
+     */
+    public void removeAllFor(EmployeeId employeeId) {
+        requireNonNull(employeeId);
+        internalList.removeIf(leave -> leave.getEmployeeId().equals(employeeId));
+    }
+
     public void setLeaves(UniqueLeaveList replacement) {
         requireNonNull(replacement);
         internalList.setAll(replacement.internalList);

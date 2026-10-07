@@ -104,6 +104,20 @@ public class UniqueLeaveListTest {
     }
 
     @Test
+    public void removeAllFor_employeeWithLeaves_removesOnlyTheirLeaves() {
+        uniqueLeaveList.setLeaves(List.of(LEAVE_ONE, LEAVE_TWO, OTHER_EMPLOYEE_LEAVE));
+
+        uniqueLeaveList.removeAllFor(EMPLOYEE_1024);
+
+        assertEquals(List.of(OTHER_EMPLOYEE_LEAVE), uniqueLeaveList.asUnmodifiableObservableList());
+    }
+
+    @Test
+    public void removeAllFor_nullEmployeeId_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> uniqueLeaveList.removeAllFor(null));
+    }
+
+    @Test
     public void setLeaves_uniqueLeaveList_replacesContents() {
         uniqueLeaveList.add(LEAVE_ONE);
         UniqueLeaveList replacement = new UniqueLeaveList();
