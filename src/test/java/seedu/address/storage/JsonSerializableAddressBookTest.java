@@ -5,12 +5,14 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
+import seedu.address.testutil.EmployeeBuilder;
 import seedu.address.testutil.TypicalEmployees;
 
 public class JsonSerializableAddressBookTest {
@@ -37,11 +39,33 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
-    public void toModelType_duplicateEmployees_throwsIllegalValueException() throws Exception {
+    public void toModelType_duplicateEmployeeNames_success() throws Exception {
         JsonSerializableAddressBook dataFromFile = JsonUtil.readJsonFile(DUPLICATE_EMPLOYEE_FILE,
                 JsonSerializableAddressBook.class).get();
+        AddressBook addressBook = dataFromFile.toModelType();
+
+        assertEquals(2, addressBook.getEmployeeList().size());
+    }
+
+    @Test
+    public void toModelType_duplicateEmployeeIds_throwsIllegalValueException() {
+        JsonAdaptedEmployee firstEmployee = new JsonAdaptedEmployee(
+                new EmployeeBuilder().withEmployeeId("1").build());
+        JsonAdaptedEmployee secondEmployee = new JsonAdaptedEmployee(
+                new EmployeeBuilder().withEmployeeId("1").withName("Different Name").build());
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(
+                List.of(firstEmployee, secondEmployee), 2);
+
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_EMPLOYEE,
-                dataFromFile::toModelType);
+                data::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidNextEmployeeId_throwsIllegalValueException() {
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(), 0);
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_INVALID_NEXT_EMPLOYEE_ID,
+                data::toModelType);
     }
 
 }

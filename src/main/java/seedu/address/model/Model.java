@@ -51,7 +51,7 @@ public interface Model {
      * Adds the given employee.
      * {@code employee} must not already exist in the address book.
      */
-    void addEmployee(Employee employee);
+    Employee addEmployee(Employee employee);
 
     /**
      * Replaces the given employee {@code target} with {@code editedEmployee}.

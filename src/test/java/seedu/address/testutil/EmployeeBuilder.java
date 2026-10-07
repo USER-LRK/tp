@@ -6,6 +6,7 @@ import java.util.Set;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -22,6 +23,7 @@ public class EmployeeBuilder {
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
     private Name name;
+    private EmployeeId employeeId;
     private Phone phone;
     private Email email;
     private Address address;
@@ -42,11 +44,28 @@ public class EmployeeBuilder {
      * Initializes the EmployeeBuilder with the data of {@code employeeToCopy}.
      */
     public EmployeeBuilder(Employee employeeToCopy) {
+        employeeId = employeeToCopy.getEmployeeId().orElse(null);
         name = employeeToCopy.getName();
         phone = employeeToCopy.getPhone();
         email = employeeToCopy.getEmail();
         address = employeeToCopy.getAddress();
         tags = new HashSet<>(employeeToCopy.getTags());
+    }
+
+    /**
+     * Sets the employee ID of the employee that we are building.
+     */
+    public EmployeeBuilder withEmployeeId(String employeeId) {
+        this.employeeId = new EmployeeId(employeeId);
+        return this;
+    }
+
+    /**
+     * Removes the employee ID from the employee that we are building.
+     */
+    public EmployeeBuilder withoutEmployeeId() {
+        employeeId = null;
+        return this;
     }
 
     /**
@@ -90,7 +109,7 @@ public class EmployeeBuilder {
     }
 
     public Employee build() {
-        return new Employee(name, phone, email, address, tags);
+        return new Employee(employeeId, name, phone, email, address, tags);
     }
 
 }

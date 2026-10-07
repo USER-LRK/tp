@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -17,6 +18,7 @@ import seedu.address.model.tag.Tag;
 public class Employee {
 
     // Identity fields
+    private final EmployeeId employeeId;
     private final Name name;
     private final Phone phone;
     private final Email email;
@@ -29,12 +31,33 @@ public class Employee {
      * Every field must be present and not null.
      */
     public Employee(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(null, name, phone, email, address, tags);
+    }
+
+    /**
+     * Creates an employee with the given ID. A null ID represents an employee that has not yet been added
+     * to an address book; the address book assigns the ID when the employee is added.
+     */
+    public Employee(EmployeeId employeeId, Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
         requireAllNonNull(name, phone, email, address, tags);
+        this.employeeId = employeeId;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+    }
+
+    public Optional<EmployeeId> getEmployeeId() {
+        return Optional.ofNullable(employeeId);
+    }
+
+    /**
+     * Returns a copy of this employee with the given ID.
+     */
+    public Employee withEmployeeId(EmployeeId employeeId) {
+        requireAllNonNull(employeeId);
+        return new Employee(employeeId, name, phone, email, address, tags);
     }
 
     public Name getName() {
@@ -62,7 +85,8 @@ public class Employee {
     }
 
     /**
-     * Returns true if both employees have the same name.
+     * Returns true if both employees have the same assigned employee ID.
+     * Unassigned employees are only the same employee when they are the same object.
      * This defines a weaker notion of equality between two employees.
      */
     public boolean isSameEmployee(Employee otherEmployee) {
@@ -71,7 +95,8 @@ public class Employee {
         }
 
         return otherEmployee != null
-                && otherEmployee.getName().equals(getName());
+                && employeeId != null
+                && employeeId.equals(otherEmployee.employeeId);
     }
 
     /**
@@ -89,7 +114,8 @@ public class Employee {
             return false;
         }
 
-        return name.equals(otherEmployee.name)
+        return Objects.equals(employeeId, otherEmployee.employeeId)
+                && name.equals(otherEmployee.name)
                 && phone.equals(otherEmployee.phone)
                 && email.equals(otherEmployee.email)
                 && address.equals(otherEmployee.address)
@@ -99,12 +125,13 @@ public class Employee {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(employeeId, name, phone, email, address, tags);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
+                .add("employeeId", employeeId)
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)

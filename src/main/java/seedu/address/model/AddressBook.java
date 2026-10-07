@@ -1,13 +1,18 @@
 package seedu.address.model;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.UniqueEmployeeList;
+import seedu.address.model.employee.exceptions.DuplicateEmployeeException;
+import seedu.address.model.employee.exceptions.EmployeeIdExhaustedException;
 
 /**
  * Wraps all data at the address-book level.
@@ -16,8 +21,16 @@ import seedu.address.model.employee.UniqueEmployeeList;
 public class AddressBook implements ReadOnlyAddressBook {
 
     private final UniqueEmployeeList employees = new UniqueEmployeeList();
+    private int nextEmployeeId = 1;
 
     public AddressBook() {}
+
+    /**
+     * Creates an address book snapshot with the given employees and next employee ID.
+     */
+    public AddressBook(List<Employee> employees, int nextEmployeeId) {
+        this.nextEmployeeId = setEmployeesAndGetNextId(employees, nextEmployeeId);
+    }
 
     /**
      * Creates an AddressBook using the Employees in the {@code toBeCopied}
@@ -34,7 +47,7 @@ public class AddressBook implements ReadOnlyAddressBook {
      * {@code employees} must not contain duplicate employees.
      */
     public void setEmployees(List<Employee> employees) {
-        this.employees.setEmployees(employees);
+        nextEmployeeId = setEmployeesAndGetNextId(employees, nextEmployeeId);
     }
 
     /**
@@ -43,7 +56,8 @@ public class AddressBook implements ReadOnlyAddressBook {
     public void resetData(ReadOnlyAddressBook newData) {
         requireNonNull(newData);
 
-        setEmployees(newData.getEmployeeList());
+        int startingId = Math.max(nextEmployeeId, newData.getNextEmployeeId());
+        nextEmployeeId = setEmployeesAndGetNextId(newData.getEmployeeList(), startingId);
     }
 
     //// employee-level operations
@@ -60,8 +74,26 @@ public class AddressBook implements ReadOnlyAddressBook {
      * Adds an employee to the address book.
      * The employee must not already exist in the address book.
      */
-    public void addEmployee(Employee p) {
-        employees.add(p);
+    public Employee addEmployee(Employee employee) {
+        requireNonNull(employee);
+
+        Employee employeeWithId = employee;
+        if (employee.getEmployeeId().isPresent()) {
+            int employeeId = Integer.parseInt(employee.getEmployeeId().orElseThrow().value);
+            if (employeeId < nextEmployeeId) {
+                throw new DuplicateEmployeeException();
+            }
+        } else {
+            if (nextEmployeeId > EmployeeId.MAX_VALUE) {
+                throw new EmployeeIdExhaustedException();
+            }
+            employeeWithId = employee.withEmployeeId(new EmployeeId(String.valueOf(nextEmployeeId)));
+        }
+
+        employees.add(employeeWithId);
+        int employeeId = Integer.parseInt(employeeWithId.getEmployeeId().orElseThrow().value);
+        nextEmployeeId = Math.max(nextEmployeeId, employeeId + 1);
+        return employeeWithId;
     }
 
     /**
@@ -71,9 +103,19 @@ public class AddressBook implements ReadOnlyAddressBook {
      * the address book.
      */
     public void setEmployee(Employee target, Employee editedEmployee) {
-        requireNonNull(editedEmployee);
+        requireAllNonNull(target, editedEmployee);
 
-        employees.setEmployee(target, editedEmployee);
+        EmployeeId targetId = target.getEmployeeId().orElseThrow();
+        Employee employeeWithPreservedId = editedEmployee.getEmployeeId()
+                .map(id -> {
+                    if (!id.equals(targetId)) {
+                        throw new IllegalArgumentException("An employee's ID cannot be changed");
+                    }
+                    return editedEmployee;
+                })
+                .orElseGet(() -> editedEmployee.withEmployeeId(targetId));
+
+        employees.setEmployee(target, employeeWithPreservedId);
     }
 
     /**
@@ -90,12 +132,18 @@ public class AddressBook implements ReadOnlyAddressBook {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("employees", employees)
+                .add("nextEmployeeId", nextEmployeeId)
                 .toString();
     }
 
     @Override
     public ObservableList<Employee> getEmployeeList() {
         return employees.asUnmodifiableObservableList();
+    }
+
+    @Override
+    public int getNextEmployeeId() {
+        return nextEmployeeId;
     }
 
     @Override
@@ -109,11 +157,47 @@ public class AddressBook implements ReadOnlyAddressBook {
             return false;
         }
 
-        return employees.equals(otherAddressBook.employees);
+        return employees.equals(otherAddressBook.employees)
+                && nextEmployeeId == otherAddressBook.nextEmployeeId;
     }
 
     @Override
     public int hashCode() {
-        return employees.hashCode();
+        return java.util.Objects.hash(employees, nextEmployeeId);
+    }
+
+    /**
+     * Replaces the employee list after assigning IDs to any legacy or draft employees. The returned ID is
+     * strictly greater than every assigned ID and never lower than {@code startingId}.
+     */
+    private int setEmployeesAndGetNextId(List<Employee> employees, int startingId) {
+        requireAllNonNull(employees);
+        if (startingId < 1 || startingId > EmployeeId.MAX_VALUE + 1) {
+            throw new IllegalArgumentException("Invalid next employee ID: " + startingId);
+        }
+
+        int nextId = startingId;
+        for (Employee employee : employees) {
+            if (employee.getEmployeeId().isPresent()) {
+                int employeeId = Integer.parseInt(employee.getEmployeeId().orElseThrow().value);
+                nextId = Math.max(nextId, employeeId + 1);
+            }
+        }
+
+        List<Employee> employeesWithIds = new ArrayList<>();
+        for (Employee employee : employees) {
+            if (employee.getEmployeeId().isPresent()) {
+                employeesWithIds.add(employee);
+                continue;
+            }
+            if (nextId > EmployeeId.MAX_VALUE) {
+                throw new EmployeeIdExhaustedException();
+            }
+            employeesWithIds.add(employee.withEmployeeId(new EmployeeId(String.valueOf(nextId))));
+            nextId++;
+        }
+
+        this.employees.setEmployees(employeesWithIds);
+        return nextId;
     }
 }

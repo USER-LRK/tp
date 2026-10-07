@@ -81,9 +81,10 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void addEmployee(Employee employee) {
-        addressBook.addEmployee(employee);
+    public Employee addEmployee(Employee employee) {
+        Employee addedEmployee = addressBook.addEmployee(employee);
         updateFilteredEmployeeList(PREDICATE_SHOW_ALL_EMPLOYEES);
+        return addedEmployee;
     }
 
     @Override

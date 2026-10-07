@@ -18,6 +18,9 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
+import seedu.address.testutil.EmployeeBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -84,6 +87,21 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_highestIdDeleted_preservesNextEmployeeId() throws Exception {
+        Path filePath = testFolder.resolve("TempAddressBook.json");
+        AddressBook original = new AddressBook();
+        Employee employee = original.addEmployee(new EmployeeBuilder().build());
+        original.removeEmployee(employee);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original);
+        AddressBook readBack = new AddressBook(storage.readAddressBook().orElseThrow());
+        Employee addedEmployee = readBack.addEmployee(new EmployeeBuilder().build());
+
+        assertEquals(new EmployeeId("2"), addedEmployee.getEmployeeId().orElseThrow());
     }
 
     @Test

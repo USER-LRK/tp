@@ -57,6 +57,17 @@ public class UniqueEmployeeListTest {
     }
 
     @Test
+    public void add_employeeWithDuplicateName_success() {
+        Employee employeeWithDuplicateName = new EmployeeBuilder(BOB).withName(ALICE.getName().fullName).build();
+        uniqueEmployeeList.add(ALICE);
+
+        uniqueEmployeeList.add(employeeWithDuplicateName);
+
+        assertEquals(List.of(ALICE, employeeWithDuplicateName),
+                uniqueEmployeeList.asUnmodifiableObservableList());
+    }
+
+    @Test
     public void setEmployee_nullTargetEmployee_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniqueEmployeeList.setEmployee(null, ALICE));
     }

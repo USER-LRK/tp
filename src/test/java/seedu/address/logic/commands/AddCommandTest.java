@@ -22,6 +22,9 @@ import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.employee.exceptions.DuplicateEmployeeException;
+import seedu.address.model.employee.exceptions.EmployeeIdExhaustedException;
 import seedu.address.testutil.EmployeeBuilder;
 
 public class AddCommandTest {
@@ -35,22 +38,43 @@ public class AddCommandTest {
     public void execute_employeeAcceptedByModel_addSuccessful() throws Exception {
         ModelStubAcceptingEmployeeAdded modelStub = new ModelStubAcceptingEmployeeAdded();
         Employee validEmployee = new EmployeeBuilder().build();
+        Employee expectedEmployee = validEmployee.withEmployeeId(new EmployeeId("1"));
 
         CommandResult commandResult = new AddCommand(validEmployee).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validEmployee)),
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedEmployee)),
                 commandResult.getFeedbackToUser());
-        assertEquals(List.of(validEmployee), modelStub.employeesAdded);
+        assertEquals(List.of(expectedEmployee), modelStub.employeesAdded);
     }
 
     @Test
-    public void execute_duplicateEmployee_throwsCommandException() {
+    public void execute_employeeIdExhausted_throwsCommandException() {
         Employee validEmployee = new EmployeeBuilder().build();
         AddCommand addCommand = new AddCommand(validEmployee);
-        ModelStub modelStub = new ModelStubWithEmployee(validEmployee);
+        ModelStub modelStub = new ModelStub() {
+            @Override
+            public Employee addEmployee(Employee employee) {
+                throw new EmployeeIdExhaustedException();
+            }
+        };
 
         assertThrows(CommandException.class,
-                AddCommand.MESSAGE_DUPLICATE_EMPLOYEE, () -> addCommand.execute(modelStub));
+                AddCommand.MESSAGE_EMPLOYEE_ID_EXHAUSTED, () -> addCommand.execute(modelStub));
+    }
+
+    @Test
+    public void execute_employeeIdAlreadyUsed_throwsCommandException() {
+        Employee validEmployee = new EmployeeBuilder().build();
+        AddCommand addCommand = new AddCommand(validEmployee);
+        ModelStub modelStub = new ModelStub() {
+            @Override
+            public Employee addEmployee(Employee employee) {
+                throw new DuplicateEmployeeException();
+            }
+        };
+
+        assertThrows(CommandException.class,
+                AddCommand.MESSAGE_DUPLICATE_EMPLOYEE_ID, () -> addCommand.execute(modelStub));
     }
 
     @Test
@@ -104,7 +128,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public void addEmployee(Employee employee) {
+        public Employee addEmployee(Employee employee) {
             throw new AssertionError("This method should not be called.");
         }
 
@@ -145,24 +169,6 @@ public class AddCommandTest {
     }
 
     /**
-     * A Model stub that contains a single employee.
-     */
-    private class ModelStubWithEmployee extends ModelStub {
-        private final Employee employee;
-
-        ModelStubWithEmployee(Employee employee) {
-            requireNonNull(employee);
-            this.employee = employee;
-        }
-
-        @Override
-        public boolean hasEmployee(Employee employee) {
-            requireNonNull(employee);
-            return this.employee.isSameEmployee(employee);
-        }
-    }
-
-    /**
      * A Model stub that always accepts the employee being added.
      */
     private class ModelStubAcceptingEmployeeAdded extends ModelStub {
@@ -175,9 +181,11 @@ public class AddCommandTest {
         }
 
         @Override
-        public void addEmployee(Employee employee) {
+        public Employee addEmployee(Employee employee) {
             requireNonNull(employee);
-            employeesAdded.add(employee);
+            Employee employeeWithId = employee.withEmployeeId(new EmployeeId("1"));
+            employeesAdded.add(employeeWithId);
+            return employeeWithId;
         }
 
         @Override

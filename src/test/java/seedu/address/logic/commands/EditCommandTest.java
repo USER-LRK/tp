@@ -37,7 +37,9 @@ public class EditCommandTest {
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
-        Employee editedEmployee = new EmployeeBuilder().build();
+        Employee employeeToEdit = model.getFilteredEmployeeList().get(INDEX_FIRST_EMPLOYEE.getZeroBased());
+        Employee editedEmployee = new EmployeeBuilder().withEmployeeId(
+                employeeToEdit.getEmployeeId().orElseThrow().value).build();
         EditEmployeeDescriptor descriptor = new EditEmployeeDescriptorBuilder(editedEmployee).build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_EMPLOYEE, descriptor);
 
@@ -104,24 +106,41 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_duplicateEmployeeUnfilteredList_failure() {
+    public void execute_duplicateEmployeeDetailsUnfilteredList_success() {
         Employee firstEmployee = model.getFilteredEmployeeList().get(INDEX_FIRST_EMPLOYEE.getZeroBased());
+        Employee secondEmployee = model.getFilteredEmployeeList().get(INDEX_SECOND_EMPLOYEE.getZeroBased());
         EditEmployeeDescriptor descriptor = new EditEmployeeDescriptorBuilder(firstEmployee).build();
         EditCommand editCommand = new EditCommand(INDEX_SECOND_EMPLOYEE, descriptor);
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_EMPLOYEE);
+        Employee editedEmployee = new EmployeeBuilder(firstEmployee)
+                .withEmployeeId(secondEmployee.getEmployeeId().orElseThrow().value)
+                .build();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setEmployee(secondEmployee, editedEmployee);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_EMPLOYEE_SUCCESS,
+                Messages.format(editedEmployee));
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test
-    public void execute_duplicateEmployeeFilteredList_failure() {
+    public void execute_duplicateEmployeeDetailsFilteredList_success() {
         showEmployeeAtIndex(model, INDEX_FIRST_EMPLOYEE);
 
-        // edit employee in filtered list into a duplicate in address book
+        Employee employeeToEdit = model.getFilteredEmployeeList().get(INDEX_FIRST_EMPLOYEE.getZeroBased());
         Employee employeeInList = model.getAddressBook().getEmployeeList().get(INDEX_SECOND_EMPLOYEE.getZeroBased());
         EditCommand editCommand = new EditCommand(INDEX_FIRST_EMPLOYEE,
                 new EditEmployeeDescriptorBuilder(employeeInList).build());
 
-        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_EMPLOYEE);
+        Employee editedEmployee = new EmployeeBuilder(employeeInList)
+                .withEmployeeId(employeeToEdit.getEmployeeId().orElseThrow().value)
+                .build();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setEmployee(employeeToEdit, editedEmployee);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_EMPLOYEE_SUCCESS,
+                Messages.format(editedEmployee));
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
     @Test

@@ -13,6 +13,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -24,6 +25,7 @@ class JsonAdaptedEmployee {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Employee's %s field is missing!";
 
+    private final String employeeId;
     private final String name;
     private final String phone;
     private final String email;
@@ -34,9 +36,11 @@ class JsonAdaptedEmployee {
      * Constructs a {@code JsonAdaptedEmployee} with the given employee details.
      */
     @JsonCreator
-    public JsonAdaptedEmployee(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
+    public JsonAdaptedEmployee(@JsonProperty("employeeId") String employeeId,
+            @JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+        this.employeeId = employeeId;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -47,9 +51,18 @@ class JsonAdaptedEmployee {
     }
 
     /**
+     * Constructs a legacy employee without an employee ID.
+     */
+    public JsonAdaptedEmployee(String name, String phone, String email, String address,
+            List<JsonAdaptedTag> tags) {
+        this(null, name, phone, email, address, tags);
+    }
+
+    /**
      * Converts a given {@code Employee} into this class for Jackson use.
      */
     public JsonAdaptedEmployee(Employee source) {
+        employeeId = source.getEmployeeId().map(id -> id.value).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -103,7 +116,13 @@ class JsonAdaptedEmployee {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(employeeTags);
-        return new Employee(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        if (employeeId == null) {
+            return new Employee(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        }
+        if (!EmployeeId.isValidEmployeeId(employeeId)) {
+            throw new IllegalValueException(EmployeeId.MESSAGE_CONSTRAINTS);
+        }
+        return new Employee(new EmployeeId(employeeId), modelName, modelPhone, modelEmail, modelAddress, modelTags);
     }
 
 }

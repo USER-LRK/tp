@@ -1,6 +1,5 @@
 package seedu.address.logic.commands;
 
-import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalEmployees.getTypicalAddressBook;
 
@@ -31,18 +30,24 @@ public class AddCommandIntegrationTest {
         Employee validEmployee = new EmployeeBuilder().build();
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.addEmployee(validEmployee);
+        Employee expectedEmployee = expectedModel.addEmployee(validEmployee);
 
         assertCommandSuccess(new AddCommand(validEmployee), model,
-                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validEmployee)),
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedEmployee)),
                 expectedModel);
     }
 
     @Test
-    public void execute_duplicateEmployee_throwsCommandException() {
+    public void execute_employeeWithDuplicateName_success() {
         Employee employeeInList = model.getAddressBook().getEmployeeList().get(0);
-        assertCommandFailure(new AddCommand(employeeInList), model,
-                AddCommand.MESSAGE_DUPLICATE_EMPLOYEE);
+        Employee employeeWithDuplicateName = new EmployeeBuilder()
+                .withName(employeeInList.getName().fullName).build();
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Employee expectedEmployee = expectedModel.addEmployee(employeeWithDuplicateName);
+
+        assertCommandSuccess(new AddCommand(employeeWithDuplicateName), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedEmployee)), expectedModel);
     }
 
 }

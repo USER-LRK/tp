@@ -36,6 +36,7 @@ public class Messages {
      */
     public static String format(Employee employee) {
         final StringBuilder builder = new StringBuilder();
+        employee.getEmployeeId().ifPresent(id -> builder.append("Employee ID: ").append(id).append("; "));
         builder.append(employee.getName())
                 .append("; Phone: ")
                 .append(employee.getPhone())

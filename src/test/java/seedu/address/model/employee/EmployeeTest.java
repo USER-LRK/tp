@@ -32,23 +32,22 @@ public class EmployeeTest {
         // null -> returns false
         assertFalse(ALICE.isSameEmployee(null));
 
-        // same name, all other attributes different -> returns true
+        // same ID, all other attributes different -> returns true
         Employee editedAlice = new EmployeeBuilder(ALICE).withPhone(VALID_PHONE_BOB).withEmail(VALID_EMAIL_BOB)
-                .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
+                .withName(VALID_NAME_BOB).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND).build();
         assertTrue(ALICE.isSameEmployee(editedAlice));
 
-        // different name, all other attributes same -> returns false
-        editedAlice = new EmployeeBuilder(ALICE).withName(VALID_NAME_BOB).build();
+        // different ID, all other attributes same -> returns false
+        editedAlice = new EmployeeBuilder(ALICE).withEmployeeId("12").build();
         assertFalse(ALICE.isSameEmployee(editedAlice));
 
-        // name differs in case, all other attributes same -> returns false
-        Employee editedBob = new EmployeeBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
-        assertFalse(BOB.isSameEmployee(editedBob));
+        // two unassigned employees with the same details -> returns false
+        Employee firstDraft = new EmployeeBuilder().build();
+        Employee secondDraft = new EmployeeBuilder().build();
+        assertFalse(firstDraft.isSameEmployee(secondDraft));
 
-        // name has trailing spaces, all other attributes same -> returns false
-        String nameWithTrailingSpaces = VALID_NAME_BOB + " ";
-        editedBob = new EmployeeBuilder(BOB).withName(nameWithTrailingSpaces).build();
-        assertFalse(BOB.isSameEmployee(editedBob));
+        // same unassigned object -> returns true
+        assertTrue(firstDraft.isSameEmployee(firstDraft));
     }
 
     @Test
@@ -56,6 +55,7 @@ public class EmployeeTest {
         // same values -> returns true
         Employee aliceCopy = new EmployeeBuilder(ALICE).build();
         assertTrue(ALICE.equals(aliceCopy));
+        assertEquals(ALICE.hashCode(), aliceCopy.hashCode());
 
         // same object -> returns true
         assertTrue(ALICE.equals(ALICE));
@@ -69,8 +69,12 @@ public class EmployeeTest {
         // different employee -> returns false
         assertFalse(ALICE.equals(BOB));
 
+        // different employee ID -> returns false
+        Employee editedAlice = new EmployeeBuilder(ALICE).withEmployeeId("12").build();
+        assertFalse(ALICE.equals(editedAlice));
+
         // different name -> returns false
-        Employee editedAlice = new EmployeeBuilder(ALICE).withName(VALID_NAME_BOB).build();
+        editedAlice = new EmployeeBuilder(ALICE).withName(VALID_NAME_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
         // different phone -> returns false
@@ -92,7 +96,8 @@ public class EmployeeTest {
 
     @Test
     public void toStringMethod() {
-        String expected = Employee.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
+        String expected = Employee.class.getCanonicalName() + "{employeeId=" + ALICE.getEmployeeId().orElseThrow()
+                + ", name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
