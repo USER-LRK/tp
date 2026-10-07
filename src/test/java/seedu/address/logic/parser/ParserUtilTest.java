@@ -2,10 +2,13 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_END_DATE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_START_DATE;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_EMPLOYEE;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -52,6 +56,66 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_EMPLOYEE, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseEmployeeId_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseEmployeeId(null));
+    }
+
+    @Test
+    public void parseEmployeeId_invalidInput_throwsParseException() {
+        for (String invalid : new String[] {"", " ", "0", "01", "1000000", "-1", "+1", "1.0", "abc"}) {
+            assertThrows(ParseException.class, EmployeeId.MESSAGE_CONSTRAINTS, () ->
+                    ParserUtil.parseEmployeeId(invalid));
+        }
+    }
+
+    @Test
+    public void parseEmployeeId_validInput_success() throws Exception {
+        EmployeeId expected = new EmployeeId("1024");
+        assertEquals(expected, ParserUtil.parseEmployeeId("1024"));
+        assertEquals(expected, ParserUtil.parseEmployeeId(WHITESPACE + "1024" + WHITESPACE));
+    }
+
+    @Test
+    public void parseStartDate_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseStartDate(null));
+    }
+
+    @Test
+    public void parseStartDate_invalidInput_throwsParseException() {
+        for (String invalid : new String[] {"", "05/10/2026", "5-10-2026", "31-02-2026", "29-02-2025"}) {
+            assertThrows(ParseException.class, MESSAGE_INVALID_START_DATE, () ->
+                    ParserUtil.parseStartDate(invalid));
+        }
+    }
+
+    @Test
+    public void parseStartDate_validInput_success() throws Exception {
+        LocalDate expected = LocalDate.of(2024, 2, 29);
+        assertEquals(expected, ParserUtil.parseStartDate("29-02-2024"));
+        assertEquals(expected, ParserUtil.parseStartDate(WHITESPACE + "29-02-2024" + WHITESPACE));
+    }
+
+    @Test
+    public void parseEndDate_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseEndDate(null));
+    }
+
+    @Test
+    public void parseEndDate_invalidInput_throwsParseException() {
+        for (String invalid : new String[] {"", "07/10/2026", "7-10-2026", "31-04-2026", "text"}) {
+            assertThrows(ParseException.class, MESSAGE_INVALID_END_DATE, () ->
+                    ParserUtil.parseEndDate(invalid));
+        }
+    }
+
+    @Test
+    public void parseEndDate_validInput_success() throws Exception {
+        LocalDate expected = LocalDate.of(2026, 10, 7);
+        assertEquals(expected, ParserUtil.parseEndDate("07-10-2026"));
+        assertEquals(expected, ParserUtil.parseEndDate(WHITESPACE + "07-10-2026" + WHITESPACE));
     }
 
     @Test

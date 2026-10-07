@@ -2,8 +2,13 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -11,6 +16,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.employee.Address;
 import seedu.address.model.employee.Email;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.employee.Name;
 import seedu.address.model.employee.Phone;
 import seedu.address.model.tag.Tag;
@@ -21,6 +27,13 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_START_DATE =
+            "Start date must be a valid date in dd-MM-yyyy format.";
+    public static final String MESSAGE_INVALID_END_DATE =
+            "End date must be a valid date in dd-MM-yyyy format.";
+
+    private static final DateTimeFormatter LEAVE_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-uuuu",
+            Locale.ENGLISH).withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -33,6 +46,43 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses {@code employeeId} into an {@code EmployeeId} after trimming surrounding whitespace.
+     * This validates the ID format only; callers must separately check that the employee exists.
+     */
+    public static EmployeeId parseEmployeeId(String employeeId) throws ParseException {
+        requireNonNull(employeeId);
+        String trimmedEmployeeId = employeeId.trim();
+        if (!EmployeeId.isValidEmployeeId(trimmedEmployeeId)) {
+            throw new ParseException(EmployeeId.MESSAGE_CONSTRAINTS);
+        }
+        return new EmployeeId(trimmedEmployeeId);
+    }
+
+    /**
+     * Parses {@code startDate} as a strict calendar date in dd-MM-yyyy format.
+     */
+    public static LocalDate parseStartDate(String startDate) throws ParseException {
+        return parseLeaveDate(startDate, MESSAGE_INVALID_START_DATE);
+    }
+
+    /**
+     * Parses {@code endDate} as a strict calendar date in dd-MM-yyyy format.
+     */
+    public static LocalDate parseEndDate(String endDate) throws ParseException {
+        return parseLeaveDate(endDate, MESSAGE_INVALID_END_DATE);
+    }
+
+    private static LocalDate parseLeaveDate(String date, String errorMessage) throws ParseException {
+        requireNonNull(date);
+        String trimmedDate = date.trim();
+        try {
+            return LocalDate.parse(trimmedDate, LEAVE_DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ParseException(errorMessage);
+        }
     }
 
     /**
