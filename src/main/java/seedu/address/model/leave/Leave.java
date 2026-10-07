@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.employee.EmployeeId;
 
 /**
  * Represents a leave record.
@@ -13,19 +14,25 @@ import seedu.address.commons.util.ToStringBuilder;
 public class Leave {
 
     private final LeaveId leaveId;
+    private final EmployeeId employeeId;
     private final LeavePeriod period;
 
     /**
      * Constructs a {@code Leave} with its generated ID and inclusive period.
      */
-    public Leave(LeaveId leaveId, LeavePeriod period) {
-        requireAllNonNull(leaveId, period);
+    public Leave(LeaveId leaveId, EmployeeId employeeId, LeavePeriod period) {
+        requireAllNonNull(leaveId, employeeId, period);
         this.leaveId = leaveId;
+        this.employeeId = employeeId;
         this.period = period;
     }
 
     public LeaveId getLeaveId() {
         return leaveId;
+    }
+
+    public EmployeeId getEmployeeId() {
+        return employeeId;
     }
 
     public LeavePeriod getPeriod() {
@@ -54,18 +61,20 @@ public class Leave {
         }
 
         return leaveId.equals(otherLeave.leaveId)
+                && employeeId.equals(otherLeave.employeeId)
                 && period.equals(otherLeave.period);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(leaveId, period);
+        return Objects.hash(leaveId, employeeId, period);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("leaveId", leaveId)
+                .add("employeeId", employeeId)
                 .add("period", period)
                 .toString();
     }

@@ -3,12 +3,16 @@ package seedu.address.model.leave;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.employee.EmployeeId;
 import seedu.address.model.leave.exceptions.DuplicateLeaveException;
 import seedu.address.model.leave.exceptions.LeaveNotFoundException;
 
@@ -37,6 +41,49 @@ public class UniqueLeaveList implements Iterable<Leave> {
         return internalList.stream()
                 .filter(leave -> leave.getLeaveId().equals(leaveId))
                 .findFirst();
+    }
+
+    /**
+     * Returns all leave records belonging to {@code employeeId} in insertion order.
+     */
+    public List<Leave> getLeavesFor(EmployeeId employeeId) {
+        requireNonNull(employeeId);
+        return internalList.stream()
+                .filter(leave -> leave.getEmployeeId().equals(employeeId))
+                .toList();
+    }
+
+    /**
+     * Returns true if the employee has a leave record that overlaps {@code period}.
+     */
+    public boolean hasOverlappingLeave(EmployeeId employeeId, LeavePeriod period) {
+        requireAllNonNull(employeeId, period);
+        return internalList.stream()
+                .filter(leave -> leave.getEmployeeId().equals(employeeId))
+                .anyMatch(leave -> leave.getPeriod().overlaps(period));
+    }
+
+    /**
+     * Returns the employee's total recorded working leave days for {@code year}.
+     */
+    public int getWorkingDaysUsed(EmployeeId employeeId, int year) {
+        requireNonNull(employeeId);
+        return internalList.stream()
+                .filter(leave -> leave.getEmployeeId().equals(employeeId))
+                .filter(leave -> leave.getPeriod().getYear() == year)
+                .mapToInt(leave -> leave.getPeriod().getWorkingDayCount())
+                .sum();
+    }
+
+    /**
+     * Returns the IDs of employees with recorded leave covering {@code date}.
+     */
+    public Set<EmployeeId> getEmployeeIdsOnLeave(LocalDate date) {
+        requireNonNull(date);
+        return internalList.stream()
+                .filter(leave -> leave.getPeriod().contains(date))
+                .map(Leave::getEmployeeId)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
