@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+HR Book is a **desktop application for managing employee records and leave, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI).
 
 * Table of Contents
 {:toc}
@@ -15,9 +15,9 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `.jar` file from the [HR Book releases page](https://github.com/AY2627S1-CS2103T-T16-3/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for HR Book.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
@@ -26,13 +26,13 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all employees.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01 le/14` : Adds an employee named `John Doe` with 14 days of annual leave entitlement.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Deletes the 3rd employee shown in the current list.
 
-   * `clear` : Deletes all contacts.
+   * `clear` : Deletes all employees and their recorded leave.
 
    * `exit` : Exits the app.
 
@@ -75,7 +75,7 @@ Format: `help`
 
 ### Adding an employee: `add`
 
-Adds an employee to the address book.
+Adds an employee to HR Book.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS le/ANNUAL_LEAVE_DAYS [t/TAG]…​`
 
@@ -91,13 +91,13 @@ Examples:
 
 ### Listing all employees: `list`
 
-Shows a list of all employees in the address book.
+Shows a list of all employees in HR Book.
 
 Format: `list`
 
 ### Editing an employee: `edit`
 
-Edits an existing employee in the address book.
+Edits an existing employee in HR Book.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [le/ANNUAL_LEAVE_DAYS] [t/TAG]…​`
 
@@ -125,6 +125,7 @@ Format: `leave add id/EMPLOYEE_ID from/START_DATE to/END_DATE`
 * The request is rejected if it overlaps that employee's existing leave or exceeds their remaining annual entitlement for that calendar year.
 * Each successful record receives a leave ID that is never reassigned during normal use.
 * Employee cards display the remaining leave for the current calendar year. This balance updates immediately after leave is recorded and is recalculated from the employee's entitlement and saved leave records.
+* Recorded leave cannot currently be cancelled or edited within HR Book. Check the employee ID and dates carefully before recording it.
 
 Example:
 * `leave add id/1 from/05-10-2026 to/07-10-2026` records three working days of leave for employee ID 1.
@@ -148,7 +149,7 @@ Examples:
 
 ### Deleting an employee: `delete`
 
-Deletes the specified employee from the address book.
+Deletes the specified employee from HR Book. Any leave recorded for that employee is also deleted.
 
 Format: `delete INDEX`
 
@@ -157,12 +158,12 @@ Format: `delete INDEX`
 * The index **must be a positive integer** 1, 2, 3, …​
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd employee in the address book.
+* `list` followed by `delete 2` deletes the 2nd employee in HR Book.
 * `find Betsy` followed by `delete 1` deletes the 1st employee in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Clears all employee and leave records from HR Book.
 
 Format: `clear`
 
@@ -174,15 +175,15 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+HR Book automatically saves data after every command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+HR Book data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, HR Book starts with an empty data set at the next run. The invalid file remains on disk until you run a command (HR Book saves after every command). Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause HR Book to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -194,7 +195,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous HR Book home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
