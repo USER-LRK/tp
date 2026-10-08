@@ -6,6 +6,8 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.employee.Employee;
+import seedu.address.model.employee.EmployeeId;
+import seedu.address.model.leave.Leave;
 
 /**
  * API of the Logic component
@@ -22,6 +24,12 @@ public interface Logic {
 
     /** Returns an unmodifiable view of the filtered list of employees */
     ObservableList<Employee> getFilteredEmployeeList();
+
+    /** Returns an unmodifiable observable view of the central leave list. */
+    ObservableList<Leave> getLeaveList();
+
+    /** Returns the employee's remaining annual leave entitlement for the given year. */
+    int getRemainingLeave(EmployeeId employeeId, int year);
 
     /**
      * Returns the user prefs' GUI settings.

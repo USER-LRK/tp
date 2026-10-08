@@ -124,6 +124,7 @@ Format: `leave add id/EMPLOYEE_ID from/START_DATE to/END_DATE`
 * Saturdays and Sundays do not consume entitlement. Weekday public holidays currently count as working days.
 * The request is rejected if it overlaps that employee's existing leave or exceeds their remaining annual entitlement for that calendar year.
 * Each successful record receives a leave ID that is never reassigned during normal use.
+* Employee cards display the remaining leave for the current calendar year. This balance updates immediately after leave is recorded and is recalculated from the employee's entitlement and saved leave records.
 
 Example:
 * `leave add id/1 from/05-10-2026 to/07-10-2026` records three working days of leave for employee ID 1.

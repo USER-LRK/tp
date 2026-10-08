@@ -69,6 +69,9 @@ public interface Model {
      */
     Leave addLeave(EmployeeId employeeId, LeavePeriod leavePeriod);
 
+    /** Returns the employee's remaining annual leave entitlement for the given year. */
+    int getRemainingLeave(EmployeeId employeeId, int year);
+
     /** Returns an unmodifiable view of the central leave list. */
     ObservableList<Leave> getLeaveList();
 

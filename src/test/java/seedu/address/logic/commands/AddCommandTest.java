@@ -165,6 +165,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public int getRemainingLeave(EmployeeId employeeId, int year) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ObservableList<Leave> getLeaveList() {
             throw new AssertionError("This method should not be called.");
         }

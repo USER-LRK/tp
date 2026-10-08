@@ -43,6 +43,8 @@ public class EmployeeCard extends UiPart<Region> {
     @FXML
     private Label leaveEntitlement;
     @FXML
+    private Label leaveRemaining;
+    @FXML
     private FlowPane tags;
 
     /**
@@ -61,5 +63,13 @@ public class EmployeeCard extends UiPart<Region> {
         employee.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /**
+     * Updates the derived annual leave balance shown on this card.
+     */
+    public void setLeaveRemaining(int year, int remainingDays) {
+        leaveRemaining.setText("Leave remaining (" + year + "): " + remainingDays
+                + " / " + employee.getLeaveEntitlement() + " days");
     }
 }

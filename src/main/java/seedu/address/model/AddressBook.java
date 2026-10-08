@@ -173,8 +173,7 @@ public class AddressBook implements ReadOnlyAddressBook {
             throw new OverlappingLeaveException();
         }
         int requestedDays = leavePeriod.getWorkingDayCount();
-        int usedDays = leaves.getWorkingDaysUsed(employeeId, leavePeriod.getYear());
-        int remainingDays = Math.max(0, employee.getLeaveEntitlement().value - usedDays);
+        int remainingDays = calculateRemainingLeave(employee, leavePeriod.getYear());
         if (requestedDays > remainingDays) {
             throw new InsufficientLeaveException(requestedDays, remainingDays);
         }
@@ -197,11 +196,27 @@ public class AddressBook implements ReadOnlyAddressBook {
                 .anyMatch(employee -> employee.getEmployeeId().orElseThrow().equals(employeeId));
     }
 
+    /**
+     * Returns the employee's remaining annual leave entitlement for {@code year}.
+     * The result is never negative, including when entitlement has been reduced below leave already used.
+     */
+    public int getRemainingLeave(EmployeeId employeeId, int year) {
+        requireNonNull(employeeId);
+        Employee employee = findEmployeeById(employeeId);
+        return calculateRemainingLeave(employee, year);
+    }
+
     private Employee findEmployeeById(EmployeeId employeeId) {
         return employees.asUnmodifiableObservableList().stream()
                 .filter(employee -> employee.getEmployeeId().orElseThrow().equals(employeeId))
                 .findFirst()
                 .orElseThrow(EmployeeNotFoundException::new);
+    }
+
+    private int calculateRemainingLeave(Employee employee, int year) {
+        EmployeeId employeeId = employee.getEmployeeId().orElseThrow();
+        int usedDays = leaves.getWorkingDaysUsed(employeeId, year);
+        return Math.max(0, employee.getLeaveEntitlement().value - usedDays);
     }
 
     //// util methods

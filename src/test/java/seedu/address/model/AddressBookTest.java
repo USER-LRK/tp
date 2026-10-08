@@ -395,6 +395,42 @@ public class AddressBookTest {
     }
 
     @Test
+    public void getRemainingLeave_noRecordedLeave_returnsEntitlement() {
+        addressBook.addEmployee(ALICE);
+
+        assertEquals(ALICE.getLeaveEntitlement().value,
+                addressBook.getRemainingLeave(new EmployeeId("1"), 2026));
+    }
+
+    @Test
+    public void getRemainingLeave_recordedLeave_subtractsWorkingDaysForRequestedYear() {
+        addressBook.addEmployee(ALICE);
+        addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+
+        assertEquals(ALICE.getLeaveEntitlement().value - 3,
+                addressBook.getRemainingLeave(new EmployeeId("1"), 2026));
+        assertEquals(ALICE.getLeaveEntitlement().value,
+                addressBook.getRemainingLeave(new EmployeeId("1"), 2027));
+    }
+
+    @Test
+    public void getRemainingLeave_entitlementReducedBelowUsed_returnsZero() {
+        addressBook.addEmployee(ALICE);
+        addressBook.addLeave(new EmployeeId("1"), MONDAY_TO_WEDNESDAY);
+        Employee reducedEntitlement = new EmployeeBuilder(ALICE).withLeaveEntitlement(2).build();
+        addressBook.setEmployee(ALICE, reducedEntitlement);
+
+        assertEquals(0, addressBook.getRemainingLeave(new EmployeeId("1"), 2026));
+    }
+
+    @Test
+    public void getRemainingLeave_invalidEmployee_throwsEmployeeNotFoundException() {
+        assertThrows(EmployeeNotFoundException.class, () ->
+                addressBook.getRemainingLeave(new EmployeeId("1"), 2026));
+        assertThrows(NullPointerException.class, () -> addressBook.getRemainingLeave(null, 2026));
+    }
+
+    @Test
     public void getEmployeeList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> addressBook.getEmployeeList().remove(0));
     }

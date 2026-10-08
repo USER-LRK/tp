@@ -118,6 +118,19 @@ public class LogicManagerTest {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredEmployeeList().remove(0));
     }
 
+    @Test
+    public void getLeaveBalanceAndList_recordedLeave_returnsModelValues() {
+        Employee employee = model.addEmployee(new EmployeeBuilder(ALICE).withoutEmployeeId().build());
+        EmployeeId employeeId = employee.getEmployeeId().orElseThrow();
+        LeavePeriod period = new LeavePeriod(
+                LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7));
+        Leave leave = model.addLeave(employeeId, period);
+
+        assertEquals(List.of(leave), logic.getLeaveList());
+        assertEquals(ALICE.getLeaveEntitlement().value - 3,
+                logic.getRemainingLeave(employeeId, 2026));
+    }
+
     /**
      * Executes the command and confirms that
      * - no exceptions are thrown <br>

@@ -104,6 +104,12 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public int getRemainingLeave(EmployeeId employeeId, int year) {
+        requireNonNull(employeeId);
+        return addressBook.getRemainingLeave(employeeId, year);
+    }
+
+    @Override
     public ObservableList<Leave> getLeaveList() {
         return addressBook.getLeaveList();
     }

@@ -90,6 +90,16 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void getRemainingLeave_recordedLeave_returnsCalculatedBalance() {
+        modelManager.addEmployee(ALICE);
+        LeavePeriod period = new LeavePeriod(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 7));
+        modelManager.addLeave(new EmployeeId("1"), period);
+
+        assertEquals(ALICE.getLeaveEntitlement().value - 3,
+                modelManager.getRemainingLeave(new EmployeeId("1"), 2026));
+    }
+
+    @Test
     public void getLeaveList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getLeaveList().remove(0));
     }
